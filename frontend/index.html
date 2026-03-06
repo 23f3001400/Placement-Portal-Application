@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Placement Portal — PPA</title>
+    <meta name="description" content="Placement Portal Application for institutes, companies, and students." />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet" />
+    <style>
+        :root {
+            --ppa-primary: #4f46e5;
+            --ppa-primary-dark: #3730a3;
+            --ppa-secondary: #0ea5e9;
+            --ppa-accent: #8b5cf6;
+            --ppa-success: #10b981;
+            --ppa-warning: #f59e0b;
+            --ppa-danger: #ef4444;
+            --ppa-bg: #f8fafc;
+            /* Slate 50 */
+            --ppa-surface: #ffffff;
+            /* White */
+            --ppa-surface2: #f1f5f9;
+            /* Slate 100 */
+            --ppa-text: #0f172a;
+            /* Slate 900 */
+            --ppa-text-muted: #64748b;
+            /* Slate 500 */
+            --ppa-border: #e2e8f0;
+            /* Slate 200 */
+            --ppa-gradient: linear-gradient(135deg, #4f46e5 0%, #0ea5e9 50%, #8b5cf6 100%);
+        }
+
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background: var(--ppa-bg);
+            color: var(--ppa-text);
+            min-height: 100vh;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--ppa-bg);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+
+        /* Navbar */
+        .ppa-navbar {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--ppa-border);
+            padding: .6rem 0;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            /* Added shadow for separation */
+        }
+
+        .ppa-navbar .navbar-brand {
+            font-weight: 800;
+            font-size: 1.3rem;
+            background: var(--ppa-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .ppa-navbar .nav-link {
+            color: var(--ppa-text-muted);
+            font-weight: 500;
+            transition: color .2s;
+        }
+
+        .ppa-navbar .nav-link:hover,
+        .ppa-navbar .nav-link.router-link-active {
+            color: var(--ppa-primary);
+        }
+
+        /* Changed hover color */
+        .navbar-toggler {
+            border: none;
+        }
+
+        .navbar-toggler:focus {
+            box-shadow: none;
+        }
+
+        /* Cards */
+        .ppa-card {
+            background: var(--ppa-surface);
+            border: 1px solid var(--ppa-border);
+            border-radius: 1rem;
+            transition: transform .2s, box-shadow .2s;
+        }
+
+        .ppa-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Lighter shadow */
+
+        /* Stat card */
+        .stat-card {
+            background: var(--ppa-surface);
+            border: 1px solid var(--ppa-border);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--ppa-gradient);
+            border-radius: 4px 0 0 4px;
+        }
+
+        .stat-card .stat-value {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--ppa-text);
+        }
+
+        .stat-card .stat-label {
+            color: var(--ppa-text-muted);
+            font-size: .85rem;
+            font-weight: 500;
+        }
+
+        .stat-card .stat-icon {
+            font-size: 2.4rem;
+            color: var(--ppa-accent);
+            opacity: .8;
+        }
+
+        /* Buttons */
+        .btn-ppa {
+            background: var(--ppa-gradient);
+            color: #fff;
+            border: none;
+            font-weight: 600;
+            border-radius: .5rem;
+            padding: .5rem 1.4rem;
+            transition: opacity .2s, transform .15s;
+        }
+
+        .btn-ppa:hover {
+            opacity: .9;
+            transform: scale(1.02);
+            color: #fff;
+        }
+
+        .btn-outline-ppa {
+            border: 1px solid var(--ppa-accent);
+            color: var(--ppa-accent);
+            border-radius: .5rem;
+            font-weight: 600;
+            background: transparent;
+            transition: background .2s, color .2s;
+        }
+
+        .btn-outline-ppa:hover {
+            background: var(--ppa-accent);
+            color: #fff;
+        }
+
+        /* Forms */
+        .form-control,
+        .form-select {
+            background: var(--ppa-surface);
+            border: 1px solid var(--ppa-border);
+            color: var(--ppa-text);
+            border-radius: .5rem;
+        }
+
+        .form-control:focus,
+        .form-select:focus {
+            background: var(--ppa-surface);
+            color: var(--ppa-text);
+            border-color: var(--ppa-primary);
+            box-shadow: 0 0 0 .2rem rgba(79, 70, 229, .25);
+        }
+
+        .form-label {
+            color: var(--ppa-text-muted);
+            font-weight: 600;
+            font-size: .85rem;
+        }
+
+        /* Tables */
+        .table-ppa {
+            color: var(--ppa-text);
+        }
+
+        .table-ppa th {
+            color: var(--ppa-text-muted);
+            font-weight: 600;
+            font-size: .8rem;
+            text-transform: uppercase;
+            border-color: var(--ppa-border);
+            background-color: var(--ppa-bg);
+            /* Use bg color for header */
+        }
+
+        .table-ppa td {
+            border-color: var(--ppa-border);
+            vertical-align: middle;
+        }
+
+        .table-ppa tbody tr:hover {
+            background: rgba(79, 70, 229, .04);
+        }
+
+        /* Badges */
+        .badge-status {
+            font-weight: 600;
+            padding: .35em .7em;
+            border-radius: .4rem;
+            font-size: .75rem;
+        }
+
+        .badge-pending {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        .badge-approved {
+            background: #d1fae5;
+            color: #059669;
+        }
+
+        .badge-rejected {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .badge-blacklisted {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .badge-applied {
+            background: #e0f2fe;
+            color: #0284c7;
+        }
+
+        .badge-shortlisted {
+            background: #ede9fe;
+            color: #7c3aed;
+        }
+
+        .badge-interview {
+            background: #ffedd5;
+            color: #ea580c;
+        }
+
+        .badge-selected {
+            background: #d1fae5;
+            color: #059669;
+        }
+
+        .badge-active {
+            background: #d1fae5;
+            color: #059669;
+        }
+
+        .badge-completed {
+            background: #f1f5f9;
+            color: #64748b;
+        }
+
+        /* Auth pages */
+        .auth-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: radial-gradient(ellipse at 30% 20%, rgba(79, 70, 229, .1) 0%, transparent 50%),
+                radial-gradient(ellipse at 70% 80%, rgba(14, 165, 233, .1) 0%, transparent 50%),
+                var(--ppa-bg);
+        }
+
+        .auth-card {
+            background: var(--ppa-surface);
+            border: 1px solid var(--ppa-border);
+            border-radius: 1.2rem;
+            padding: 2.5rem;
+            width: 100%;
+            max-width: 460px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+            /* Lighter shadow */
+        }
+
+        .auth-card h2 {
+            font-weight: 800;
+            margin-bottom: .5rem;
+            background: var(--ppa-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Page header */
+        .page-header {
+            margin-bottom: 1.5rem;
+        }
+
+        .page-header h3 {
+            font-weight: 700;
+            color: var(--ppa-text);
+        }
+
+        /* Misc */
+        .text-gradient {
+            background: var(--ppa-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .fade-in {
+            animation: fadeIn .4s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Mobile adjustments */
+        @media (max-width: 768px) {
+            .stat-card .stat-value {
+                font-size: 1.5rem;
+            }
+
+            .auth-card {
+                margin: 1rem;
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <app-navbar v-if="showNavbar"></app-navbar>
+        <router-view></router-view>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+    <script src="https://unpkg.com/vue-router@4/dist/vue-router.global.prod.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- App modules (order matters: api first, then components, then views, then router, then main) -->
+    <script src="services/api.js"></script>
+    <script src="components/Navbar.js"></script>
+
+    <!-- Views - Auth -->
+    <script src="views/Login.js"></script>
+    <script src="views/Register.js"></script>
+
+    <!-- Views - Admin -->
+    <script src="views/AdminDashboard.js"></script>
+    <script src="views/AdminCompanies.js"></script>
+    <script src="views/AdminStudents.js"></script>
+    <script src="views/AdminDrives.js"></script>
+    <script src="views/AdminReports.js"></script>
+
+    <!-- Views - Company -->
+    <script src="views/CompanyDashboard.js"></script>
+    <script src="views/CompanyDrives.js"></script>
+    <script src="views/CompanyApplicants.js"></script>
+    <script src="views/CompanyInterviews.js"></script>
+    <script src="views/CompanyReports.js"></script>
+
+    <!-- Views - Student -->
+    <script src="views/StudentDashboard.js"></script>
+    <script src="views/StudentDrives.js"></script>
+    <script src="views/StudentApplications.js"></script>
+    <script src="views/StudentProfile.js"></script>
+    <script src="views/StudentPlacements.js"></script>
+
+    <script src="router.js"></script>
+    <script src="main.js"></script>
+</body>
+
+</html>
