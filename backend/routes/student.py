@@ -4,6 +4,7 @@ import os
 from flask import Blueprint, request, jsonify, current_app, send_from_directory
 from flask_security import auth_required, roles_required, current_user
 from models import db, Student, PlacementDrive, Application
+from extensions import cache
 
 student_bp = Blueprint("student", __name__, url_prefix="/api/student")
 
@@ -93,6 +94,7 @@ def download_resume(filename):
 @student_bp.route("/drives", methods=["GET"])
 @auth_required("token")
 @roles_required("student")
+@cache.cached(timeout=30, query_string=True, key_prefix="student_drives")
 def list_drives():
     s = current_user.student
     q = request.args.get("q", "").strip()
@@ -207,6 +209,9 @@ def apply_to_drive():
     application = Application(student_id=s.id, drive_id=drive_id, status="applied")
     db.session.add(application)
     db.session.commit()
+    cache.delete("student_drives")
+    cache.delete("admin_dashboard")
+    cache.delete("admin_reports")
     return jsonify(msg="Application submitted.", id=application.id), 201
 
 
@@ -224,6 +229,9 @@ def delete_application(aid):
         return jsonify(msg="Cannot withdraw — application already processed."), 400
     db.session.delete(app)
     db.session.commit()
+    cache.delete("student_drives")
+    cache.delete("admin_dashboard")
+    cache.delete("admin_reports")
     return jsonify(msg="Application withdrawn."), 200
 
 

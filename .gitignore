@@ -17,3 +17,11 @@ Thumbs.db
 
 # Misc
 *.log
+
+# Secrets
+.env
+
+# Generated
+backend/exports/
+backend/logs/
+celerybeat-schedule

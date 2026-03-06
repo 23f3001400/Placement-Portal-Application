@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 from flask import Blueprint, request, jsonify
 from flask_security import auth_required, roles_required, current_user
 from models import db, Company, PlacementDrive, Application, Interview, Student
+from extensions import cache
 
 company_bp = Blueprint("company", __name__, url_prefix="/api/company")
 
@@ -127,6 +128,9 @@ def create_drive():
     )
     db.session.add(drive)
     db.session.commit()
+    cache.delete("admin_dashboard")
+    cache.delete("admin_reports")
+    cache.delete("student_drives")
     return jsonify(msg="Drive created. Waiting for admin approval.", id=drive.id), 201
 
 
@@ -233,6 +237,8 @@ def update_application(aid):
     if new_status and new_status in ("shortlisted", "interview", "selected", "rejected"):
         app.status = new_status
     db.session.commit()
+    cache.delete("admin_dashboard")
+    cache.delete("admin_reports")
     return jsonify(msg="Application status updated.", status=app.status), 200
 
 

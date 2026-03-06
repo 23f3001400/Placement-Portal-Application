@@ -3,6 +3,7 @@
 from flask import Blueprint, request, jsonify
 from flask_security import auth_required, roles_required, current_user
 from models import db, User, Company, Student, PlacementDrive, Application
+from extensions import cache
 
 admin_bp = Blueprint("admin", __name__, url_prefix="/api/admin")
 
@@ -16,6 +17,7 @@ def _require_admin():
 @admin_bp.route("/dashboard", methods=["GET"])
 @auth_required("token")
 @roles_required("admin")
+@cache.cached(timeout=60, key_prefix="admin_dashboard")
 def dashboard():
     total_students = Student.query.count()
     total_companies = Company.query.count()
@@ -228,6 +230,7 @@ def delete_drive(did):
 @admin_bp.route("/reports", methods=["GET"])
 @auth_required("token")
 @roles_required("admin")
+@cache.cached(timeout=60, key_prefix="admin_reports")
 def reports():
     total_students = Student.query.count()
     total_companies = Company.query.count()

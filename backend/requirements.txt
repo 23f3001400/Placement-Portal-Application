@@ -7,3 +7,7 @@ email-validator==2.2.0
 bcrypt==4.2.1
 argon2-cffi>=23.1.0
 setuptools<81
+celery[redis]==5.4.0
+redis==5.2.1
+Flask-Caching==2.3.0
+Flask-Mail==0.10.0

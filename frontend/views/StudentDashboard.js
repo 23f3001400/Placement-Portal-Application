@@ -3,8 +3,16 @@ const StudentDashboard = {
   template: `
   <div class="container py-4 fade-in">
     <div class="page-header">
-      <h3><i class="bi bi-speedometer2 me-2"></i>Student Dashboard</h3>
-      <p class="text-muted mb-0">Welcome back, {{ profile.name || '' }}</p>
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <h3><i class="bi bi-speedometer2 me-2"></i>Student Dashboard</h3>
+          <p class="text-muted mb-0">Welcome back, {{ profile.name || '' }}</p>
+        </div>
+        <button class="btn btn-outline-ppa" @click="exportCSV" :disabled="exporting">
+          <i class="bi me-1" :class="exporting ? 'bi-hourglass-split' : 'bi-download'"></i>
+          {{ exporting ? 'Exporting…' : 'Export CSV' }}
+        </button>
+      </div>
     </div>
     <div v-if="loading" class="text-center py-5"><div class="spinner-border text-primary"></div></div>
     <template v-else>
@@ -86,8 +94,16 @@ const StudentDashboard = {
         </div>
       </div>
     </template>
+
+    <!-- Export success alert -->
+    <div v-if="exportMsg" class="position-fixed bottom-0 end-0 p-3" style="z-index:1055;">
+      <div class="alert alert-success alert-dismissible shadow-lg fade show" role="alert">
+        <i class="bi bi-check-circle-fill me-2"></i>{{ exportMsg }}
+        <button type="button" class="btn-close" @click="exportMsg=''"></button>
+      </div>
+    </div>
   </div>`,
-  data() { return { profile: {}, drives: [], applications: [], loading: true }; },
+  data() { return { profile: {}, drives: [], applications: [], loading: true, exporting: false, exportTaskId: null, exportMsg: '' }; },
   computed: {
     shortlisted() { return this.applications.filter(a => a.status === 'shortlisted' || a.status === 'interview').length; },
     selected() { return this.applications.filter(a => a.status === 'selected').length; }
@@ -99,6 +115,52 @@ const StudentDashboard = {
         d.already_applied = true;
         this.applications = await Api.get('/student/applications');
       } catch (e) { alert(e.message); }
+    },
+    async exportCSV() {
+      this.exporting = true;
+      this.exportMsg = '';
+      try {
+        const res = await Api.post('/student/export-applications', {});
+        this.exportTaskId = res.task_id;
+        this.pollExportStatus();
+      } catch (e) {
+        alert('Failed to start export: ' + e.message);
+        this.exporting = false;
+      }
+    },
+    async pollExportStatus() {
+      const poll = async () => {
+        try {
+          const res = await Api.get('/student/export-status/' + this.exportTaskId);
+          if (res.state === 'SUCCESS' && res.filename) {
+            this.exporting = false;
+            this.exportMsg = 'Export ready! (' + res.count + ' records) — Downloading…';
+            const token = Api.getToken();
+            const resp = await fetch('/api/student/export-download/' + res.filename, {
+              headers: { 'Authentication-Token': token }
+            });
+            const blob = await resp.blob();
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = res.filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            setTimeout(() => { this.exportMsg = ''; }, 5000);
+          } else if (res.state === 'FAILURE') {
+            this.exporting = false;
+            alert('Export failed: ' + (res.error || 'Unknown error'));
+          } else {
+            setTimeout(poll, 2000);
+          }
+        } catch (e) {
+          this.exporting = false;
+          alert('Error checking export status: ' + e.message);
+        }
+      };
+      setTimeout(poll, 1500);
     }
   },
   async created() {

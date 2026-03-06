@@ -58,4 +58,3 @@ const StudentApplications = {
   created() { this.fetchApplications(); }
 };
 window.StudentApplications = StudentApplications;
-
