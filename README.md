@@ -37,7 +37,7 @@ Open **http://localhost:5000** in your browser. That's it — both API and front
 
 | Role    | Email            | Password    |
 |---------|------------------|-------------|
-| Admin   | admin@ppa.com    | Admin@123   |
+| Admin   | admin@ppa.com    | 111111      |
 
 > Admin is auto-created on first backend start. Register new student/company accounts from the registration page.
 
