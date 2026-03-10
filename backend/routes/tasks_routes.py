@@ -1,5 +1,3 @@
-"""Task-related API routes — CSV export trigger, status, download."""
-
 import os
 from flask import Blueprint, jsonify, send_from_directory, current_app
 from flask_security import auth_required, roles_required, current_user
@@ -12,7 +10,6 @@ tasks_bp = Blueprint("tasks", __name__, url_prefix="/api/student")
 @auth_required("token")
 @roles_required("student")
 def trigger_export():
-    """Start an async CSV export of the current student's applications."""
     s = current_user.student
     if not s:
         return jsonify(msg="Student profile not found."), 404
@@ -27,7 +24,6 @@ def trigger_export():
 @auth_required("token")
 @roles_required("student")
 def export_status(task_id):
-    """Check the status of a CSV export task."""
     result = AsyncResult(task_id)
     response = {"task_id": task_id, "state": result.state}
 
@@ -44,7 +40,6 @@ def export_status(task_id):
 @auth_required("token")
 @roles_required("student")
 def export_download(filename):
-    """Download a previously generated CSV export file."""
     export_dir = current_app.config["EXPORT_FOLDER"]
     filepath = os.path.join(export_dir, filename)
     if not os.path.isfile(filepath):

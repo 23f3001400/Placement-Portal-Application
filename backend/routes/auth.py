@@ -1,5 +1,3 @@
-"""Authentication routes — register, login, logout, current-user."""
-
 from datetime import datetime, timezone
 from flask import Blueprint, request, jsonify
 from flask_security import (

@@ -1,11 +1,8 @@
-"""Celery application factory — creates & configures the Celery instance."""
-
 from celery import Celery, Task
 from celery.schedules import crontab
 
 
 def celery_init_app(app):
-    """Create a Celery app that shares Flask's application context."""
 
     class FlaskTask(Task):
         def __call__(self, *args, **kwargs):
@@ -18,7 +15,7 @@ def celery_init_app(app):
     # Auto-discover tasks in the tasks/ package
     celery.autodiscover_tasks(["tasks"])
 
-    # ── Celery Beat schedule ────────────────────────────────────────────
+    # Celery Beat schedule
     celery.conf.beat_schedule = {
         "send-daily-reminders": {
             "task": "tasks.reminders.send_daily_reminders",

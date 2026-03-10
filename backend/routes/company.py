@@ -1,5 +1,3 @@
-"""Company routes — profile, drives, applicants, status updates, interviews."""
-
 from datetime import datetime, timezone
 from flask import Blueprint, request, jsonify
 from flask_security import auth_required, roles_required, current_user
@@ -9,7 +7,7 @@ from extensions import cache
 company_bp = Blueprint("company", __name__, url_prefix="/api/company")
 
 
-# ── Profile ──────────────────────────────────────────────────────────────
+# Profile
 @company_bp.route("/profile", methods=["GET"])
 @auth_required("token")
 @roles_required("company")
@@ -44,7 +42,7 @@ def update_profile():
     return jsonify(msg="Profile updated."), 200
 
 
-# ── Drives ───────────────────────────────────────────────────────────────
+# Drives
 @company_bp.route("/drives", methods=["GET"])
 @auth_required("token")
 @roles_required("company")
@@ -187,7 +185,7 @@ def delete_drive(did):
     return jsonify(msg="Drive deleted."), 200
 
 
-# ── Applicants ───────────────────────────────────────────────────────────
+# Applicants
 @company_bp.route("/drives/<int:did>/applicants", methods=["GET"])
 @auth_required("token")
 @roles_required("company")
@@ -222,7 +220,7 @@ def view_applicants(did):
     return jsonify(result), 200
 
 
-# ── Update application status ───────────────────────────────────────────
+# Update application status
 @company_bp.route("/applications/<int:aid>", methods=["PUT"])
 @auth_required("token")
 @roles_required("company")
@@ -242,7 +240,7 @@ def update_application(aid):
     return jsonify(msg="Application status updated.", status=app.status), 200
 
 
-# ── Interviews ───────────────────────────────────────────────────────────
+# Interviews
 @company_bp.route("/interviews", methods=["POST"])
 @auth_required("token")
 @roles_required("company")
@@ -314,7 +312,7 @@ def list_interviews():
     return jsonify(result), 200
 
 
-# ── Reports ──────────────────────────────────────────────────────────────
+# Reports
 @company_bp.route("/reports", methods=["GET"])
 @auth_required("token")
 @roles_required("company")

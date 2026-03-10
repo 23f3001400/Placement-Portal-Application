@@ -52,7 +52,7 @@ router.beforeEach((to, from, next) => {
         return next('/login');
     }
 
-    // Role check (skipped in DEMO_MODE)
+    // Role check
     if (to.meta.role && to.meta.role !== userRole) {
         const dest = { admin: '/admin/dashboard', company: '/company/dashboard', student: '/student/dashboard' };
         return next(dest[userRole] || '/login');

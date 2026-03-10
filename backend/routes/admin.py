@@ -1,5 +1,3 @@
-"""Admin routes — dashboard, manage companies / students / drives, reports."""
-
 from flask import Blueprint, request, jsonify
 from flask_security import auth_required, roles_required, current_user
 from models import db, User, Company, Student, PlacementDrive, Application
@@ -9,11 +7,10 @@ admin_bp = Blueprint("admin", __name__, url_prefix="/api/admin")
 
 
 def _require_admin():
-    """Helper; already covered by @roles_required but kept for clarity."""
     pass
 
 
-# ── Dashboard stats ─────────────────────────────────────────────────────
+# Dashboard stats
 @admin_bp.route("/dashboard", methods=["GET"])
 @auth_required("token")
 @roles_required("admin")
@@ -37,7 +34,7 @@ def dashboard():
     ), 200
 
 
-# ── Companies ────────────────────────────────────────────────────────────
+# Companies
 @admin_bp.route("/companies", methods=["GET"])
 @auth_required("token")
 @roles_required("admin")
@@ -97,7 +94,7 @@ def delete_company(cid):
     return jsonify(msg="Company deleted."), 200
 
 
-# ── Students ─────────────────────────────────────────────────────────────
+# Students
 @admin_bp.route("/students", methods=["GET"])
 @auth_required("token")
 @roles_required("admin")
@@ -164,7 +161,7 @@ def delete_student(sid):
     return jsonify(msg="Student deleted."), 200
 
 
-# ── Placement Drives ────────────────────────────────────────────────────
+# Placement Drives
 @admin_bp.route("/drives", methods=["GET"])
 @auth_required("token")
 @roles_required("admin")
@@ -226,7 +223,7 @@ def delete_drive(did):
     return jsonify(msg="Drive deleted."), 200
 
 
-# ── Reports ──────────────────────────────────────────────────────────────
+# Reports
 @admin_bp.route("/reports", methods=["GET"])
 @auth_required("token")
 @roles_required("admin")

@@ -1,5 +1,3 @@
-"""Student routes — profile, resume, drives, applications, placements."""
-
 import os
 from flask import Blueprint, request, jsonify, current_app, send_from_directory
 from flask_security import auth_required, roles_required, current_user
@@ -9,7 +7,7 @@ from extensions import cache
 student_bp = Blueprint("student", __name__, url_prefix="/api/student")
 
 
-# ── Profile ──────────────────────────────────────────────────────────────
+# Profile
 @student_bp.route("/profile", methods=["GET"])
 @auth_required("token")
 @roles_required("student")
@@ -55,7 +53,7 @@ def update_profile():
     return jsonify(msg="Profile updated."), 200
 
 
-# ── Resume upload ────────────────────────────────────────────────────────
+# Resume upload
 @student_bp.route("/resume", methods=["POST"])
 @auth_required("token")
 @roles_required("student")
@@ -90,7 +88,7 @@ def download_resume(filename):
     return send_from_directory(upload_dir, filename, as_attachment=True)
 
 
-# ── Browse approved drives ──────────────────────────────────────────────
+# Browse approved drives
 @student_bp.route("/drives", methods=["GET"])
 @auth_required("token")
 @roles_required("student")
@@ -169,7 +167,7 @@ def list_drives():
     return jsonify(result), 200
 
 
-# ── Apply to drive ──────────────────────────────────────────────────────
+# Apply to drive
 @student_bp.route("/applications", methods=["POST"])
 @auth_required("token")
 @roles_required("student")
@@ -235,7 +233,7 @@ def delete_application(aid):
     return jsonify(msg="Application withdrawn."), 200
 
 
-# ── My applications ─────────────────────────────────────────────────────
+# My applications
 @student_bp.route("/applications", methods=["GET"])
 @auth_required("token")
 @roles_required("student")
@@ -278,7 +276,7 @@ def my_applications():
     return jsonify(result), 200
 
 
-# ── Placement history (all results) ─────────────────────────────────────
+# Placement history (all results)
 @student_bp.route("/placements", methods=["GET"])
 @auth_required("token")
 @roles_required("student")

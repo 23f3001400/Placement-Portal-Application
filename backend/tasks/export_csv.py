@@ -1,20 +1,11 @@
-"""User-triggered async task — Export student applications as CSV.
-
-Triggered from the student dashboard via API. Generates a CSV file
-containing the student's full application history and saves it to
-the exports/ directory.
-"""
-
 import csv
 import os
 from datetime import datetime, timezone
 from celery import shared_task
 
-
 @shared_task(name="tasks.export_csv.export_applications_csv", bind=True)
 def export_applications_csv(self, student_id):
-    """Generate a CSV export of all applications for *student_id*."""
-    from app import app  # local import to avoid circular deps
+    from app import app
 
     with app.app_context():
         from flask import current_app

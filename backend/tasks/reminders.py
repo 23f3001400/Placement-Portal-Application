@@ -1,10 +1,3 @@
-"""Scheduled task — Daily reminders via Google Chat Webhook.
-
-Runs every day at 08:00 AM IST. Finds placement drives with
-application deadlines in the next 3 days and posts a summary
-to a Google Chat space via webhook.
-"""
-
 import json
 import urllib.request
 from datetime import datetime, timedelta, timezone
@@ -13,8 +6,7 @@ from celery import shared_task
 
 @shared_task(name="tasks.reminders.send_daily_reminders")
 def send_daily_reminders():
-    """Post upcoming-deadline reminders to Google Chat webhook."""
-    from app import app  # local import to avoid circular deps
+    from app import app
 
     with app.app_context():
         from flask import current_app

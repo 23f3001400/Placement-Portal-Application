@@ -23,5 +23,4 @@ Thumbs.db
 
 # Generated
 backend/exports/
-backend/logs/
 celerybeat-schedule

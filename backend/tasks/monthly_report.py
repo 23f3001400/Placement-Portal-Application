@@ -1,10 +1,3 @@
-"""Scheduled task — Monthly Activity Report sent to admin via email.
-
-Runs on the 1st of every month at 09:00 AM IST.
-Generates an HTML report of the previous month's placement activity
-and sends it to the admin email address.
-"""
-
 from datetime import datetime, timezone
 from calendar import monthrange
 from celery import shared_task
@@ -12,8 +5,7 @@ from celery import shared_task
 
 @shared_task(name="tasks.monthly_report.send_monthly_report")
 def send_monthly_report():
-    """Generate and email the monthly placement activity report."""
-    from app import app, mail  # local import to avoid circular deps
+    from app import app, mail
 
     with app.app_context():
         from flask import current_app
@@ -35,7 +27,7 @@ def send_monthly_report():
         last_day = datetime(year, month, monthrange(year, month)[1], 23, 59, 59, tzinfo=timezone.utc)
         month_label = first_day.strftime("%B %Y")
 
-        # ── Gather statistics ───────────────────────────────────────────
+        # Gather statistics
         drives = PlacementDrive.query.filter(
             PlacementDrive.created_at >= first_day,
             PlacementDrive.created_at <= last_day,
@@ -86,7 +78,7 @@ def send_monthly_report():
 
         company_rows.sort(key=lambda r: r["selected"], reverse=True)
 
-        # ── Build HTML report ───────────────────────────────────────────
+        # Build HTML report
         company_table_rows = ""
         for idx, r in enumerate(company_rows, 1):
             company_table_rows += f"""
@@ -183,7 +175,7 @@ def send_monthly_report():
 </html>
 """
 
-        # ── Send email ─────────────────────────────────────────────────
+        # Send email
         msg = MailMessage(
             subject=f"PPA Monthly Report — {month_label}",
             recipients=[admin_email],
