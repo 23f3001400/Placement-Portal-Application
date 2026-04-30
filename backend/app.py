@@ -16,6 +16,7 @@ from routes.admin import admin_bp
 from routes.company import company_bp
 from routes.student import student_bp
 from routes.tasks_routes import tasks_bp
+from routes.cron import cron_bp
 from seed_admin import seed_admin
 from celery_app import celery_init_app
 
@@ -46,6 +47,7 @@ def create_app():
     app.register_blueprint(company_bp)
     app.register_blueprint(student_bp)
     app.register_blueprint(tasks_bp)
+    app.register_blueprint(cron_bp)
 
     # Serve frontend files
     @app.route("/")

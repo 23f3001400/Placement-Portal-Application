@@ -57,6 +57,11 @@ class Config:
         "broker_connection_retry_on_startup": True,
     }
 
+    # Run tasks synchronously when no Celery worker is available (e.g. Render free tier)
+    if os.environ.get("CELERY_ALWAYS_EAGER", "").lower() in ("1", "true", "yes"):
+        CELERY["task_always_eager"] = True
+        CELERY["task_eager_propagates"] = True
+
     # If using TLS (rediss://), Celery needs explicit SSL config
     if _celery_broker.startswith("rediss://"):
         import ssl
