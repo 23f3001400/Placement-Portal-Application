@@ -11,7 +11,7 @@ A comprehensive full-stack placement management system built for educational ins
 │                        Production (Render.com)                      │
 │                                                                     │
 │   ┌──────────────────────┐       ┌─────────────────────────────┐    │
-│   │    Web Service        │       │    Background Worker        │    │
+│   │    Web Service       │       │    Background Worker        │    │
 │   │  ┌────────────────┐  │       │  ┌───────────────────────┐  │    │
 │   │  │ Gunicorn (WSGI)│  │       │  │ Celery Worker + Beat  │  │    │
 │   │  │    ┌────────┐  │  │       │  │  ┌─────────────────┐  │  │    │
@@ -27,12 +27,12 @@ A comprehensive full-stack placement management system built for educational ins
 │   └──────────┬───────────┘       └──────────────┼──────────────┘    │
 │              │                                  │                   │
 │         ┌────┴──────────────────────────────────┴────┐              │
-│         │             PostgreSQL Database             │              │
+│         │             PostgreSQL Database            │              │
 │         └────────────────────────────────────────────┘              │
 │                                                                     │
 │   ┌─────────────────────────────────────────────────────────┐       │
-│   │                   Upstash Redis                          │       │
-│   │       Broker • Result Backend • Cache Store              │       │
+│   │                   Upstash Redis                         │       │
+│   │       Broker • Result Backend • Cache Store             │       │
 │   └─────────────────────────────────────────────────────────┘       │
 └─────────────────────────────────────────────────────────────────────┘
 ```
