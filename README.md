@@ -7,45 +7,50 @@ A comprehensive full-stack placement management system built for educational ins
 ## 🏗️ Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────────────┐
-│                        Production (Render.com)                      │
-│                                                                     │
-│   ┌──────────────────────┐       ┌─────────────────────────────┐    │
-│   │    Web Service       │       │    Background Worker        │    │
-│   │  ┌────────────────┐  │       │  ┌───────────────────────┐  │    │
-│   │  │ Gunicorn (WSGI)│  │       │  │ Celery Worker + Beat  │  │    │
-│   │  │    ┌────────┐  │  │       │  │  ┌─────────────────┐  │  │    │
-│   │  │    │ Flask  │  │  │       │  │  │ Scheduled Tasks │  │  │    │
-│   │  │    │  API   │  │  │       │  │  │  • Reminders    │  │  │    │
-│   │  │    └───┬────┘  │  │       │  │  │  • Reports      │  │  │    │
-│   │  └────────┼───────┘  │       │  │  │  • CSV Export   │  │  │    │
-│   │           │          │       │  │  └─────────────────┘  │  │    │
-│   │  ┌────────┴───────┐  │       │  └───────────┬───────────┘  │    │
-│   │  │  Static Files  │  │       │              │              │    │
-│   │  │  (Vue 3 SPA)   │  │       │              │              │    │
-│   │  └────────────────┘  │       │              │              │    │
-│   └──────────┬───────────┘       └──────────────┼──────────────┘    │
-│              │                                  │                   │
-│         ┌────┴──────────────────────────────────┴────┐              │
-│         │             PostgreSQL Database            │              │
-│         └────────────────────────────────────────────┘              │
-│                                                                     │
-│   ┌─────────────────────────────────────────────────────────┐       │
-│   │                   Upstash Redis                         │       │
-│   │       Broker • Result Backend • Cache Store             │       │
-│   └─────────────────────────────────────────────────────────┘       │
-└─────────────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────┐
+│                    Production (Render.com)                   │
+│                                                              │
+│   ┌────────────────────────────────────────────────────┐     │
+│   │              Web Service (Gunicorn)                │     │
+│   │                                                    │     │
+│   │   ┌──────────────┐    ┌──────────────────────┐     │     │
+│   │   │  Flask API   │    │  Celery (eager mode) │     │     │
+│   │   │  REST + Auth │    │  CSV export runs     │     │     │
+│   │   └──────┬───────┘    │  in-process          │     │     │
+│   │          │            └──────────────────────┘     │     │
+│   │   ┌──────┴───────┐    ┌──────────────────────┐     │     │
+│   │   │ Static Files │    │  HTTP Cron Endpoints │     │     │
+│   │   │ (Vue 3 SPA)  │    │  /api/cron/*         │     │     │
+│   │   └──────────────┘    └──────────┬───────────┘     │     │
+│   └──────────────────────────────────┼─────────────────┘     │
+│                                      │                       │
+│   ┌──────────────────────────────────┴──────────────────┐    │
+│   │              PostgreSQL Database                    │    │
+│   └─────────────────────────────────────────────────────┘    │
+│                                                              │
+│   ┌─────────────────────────────────────────────────────┐    │
+│   │                  Upstash Redis                      │    │
+│   │            Cache Store + Task Backend               │    │
+│   └─────────────────────────────────────────────────────┘    │
+└──────────────────────────────────────────────────────────────┘
+                           ▲
+                           │ POST /api/cron/*
+                  ┌────────┴─────────┐
+                  │  External Cron   │
+                  │  (cron-job.org)  │
+                  └──────────────────┘
 ```
 
 ```
 User → Browser (Vue 3 SPA)
         │
-        ├─ REST API ──→ Flask ──→ PostgreSQL (data)
-        │                   └──→ Redis (cache)
+        ├─ REST API ────→ Flask ──→ PostgreSQL (data)
+        │                     └──→ Redis (cache)
         │
-        └─ Async Task ─→ Celery Worker ──→ Redis (broker)
-                              ├──→ Google Chat (webhooks)
-                              └──→ SMTP (email reports)
+        └─ CSV Export ──→ Celery (eager, in-process)
+
+External Cron ──→ POST /api/cron/* ──→ Reminders (Google Chat)
+                                   └──→ Reports (SMTP email)
 ```
 
 ---
@@ -57,11 +62,11 @@ User → Browser (Vue 3 SPA)
 | Backend     | Flask, Flask-Security-Too, SQLAlchemy, Gunicorn   |
 | Database    | PostgreSQL (production) / SQLite (local dev)      |
 | Frontend    | Vue 3, Vue Router, Bootstrap 5, Chart.js          |
-| Async Jobs  | Celery + Redis (scheduled & user-triggered tasks) |
+| Async Jobs  | Celery (eager mode) + HTTP cron endpoints         |
 | Caching     | Flask-Caching + Redis                             |
 | Email       | Flask-Mail (SMTP)                                 |
 | Webhooks    | Google Chat Incoming Webhooks                     |
-| Deployment  | Render.com (Web + Worker + Postgres + Upstash Redis) |
+| Deployment  | Render.com(Web Service + Postgres + Upstash Redis)|
 
 ---
 
@@ -92,19 +97,21 @@ User → Browser (Vue 3 SPA)
 
 ---
 
-## ⚙️ Background Jobs (Celery)
+## ⚙️ Background Jobs & Scheduled Tasks
 
-| Job                  | Trigger                     | Description                                                        |
-|----------------------|-----------------------------|--------------------------------------------------------------------|
-| Daily Reminders      | 8:00 AM IST daily (Beat)   | Posts upcoming deadline alerts (next 3 days) to Google Chat         |
-| Monthly Report       | 1st of month, 9 AM (Beat)  | Emails an HTML report with drives, applications, selections stats  |
-| CSV Export           | User-triggered (async)     | Generates and serves a CSV of the student's application history    |
+| Job                  | Trigger                          | Description                                                        |
+|----------------------|----------------------------------|--------------------------------------------------------------------||
+| Daily Reminders      | External cron → HTTP endpoint    | Posts upcoming deadline alerts (next 3 days) to Google Chat         |
+| Monthly Report       | External cron → HTTP endpoint    | Emails an HTML report with drives, applications, selections stats  |
+| CSV Export           | User-triggered (runs in-process) | Generates and serves a CSV of the student's application history    |
+
+Scheduled tasks are triggered via HTTP cron endpoints (`/api/cron/*`) protected by a `CRON_SECRET` header, invoked by an external cron service like [cron-job.org](https://cron-job.org).
 
 ---
 
 ## 🚀 Performance & Caching
 
-| Endpoint              | TTL  | Invalidated On                                     |
+| Endpoint              | TTL  | Invalidated On                                      |
 |-----------------------|------|-----------------------------------------------------|
 | Admin Dashboard       | 60s  | Apply, withdraw, create drive, status change        |
 | Admin Reports         | 60s  | Apply, withdraw, create drive, status change        |
@@ -134,7 +141,8 @@ Placement-Portal-Application/
 │   │   ├── admin.py           # Admin dashboard, companies, students, drives, reports
 │   │   ├── company.py         # Company profile, drives, applicants, interviews
 │   │   ├── student.py         # Student profile, drives, applications
-│   │   └── tasks_routes.py    # CSV export trigger / status / download
+│   │   ├── tasks_routes.py    # CSV export trigger / status / download
+│   │   └── cron.py            # HTTP cron endpoints (reminders, reports)
 │   └── tasks/
 │       ├── reminders.py       # Daily Google Chat webhook reminders
 │       ├── monthly_report.py  # Monthly HTML email report
@@ -193,14 +201,16 @@ Open **http://localhost:5000** — Admin: `admin@ppa.com` / `111111`
 
 ## 🔐 Environment Variables
 
-| Variable                  | Purpose                          |
-|---------------------------|----------------------------------|
-| `DATABASE_URL`            | PostgreSQL connection string     |
-| `REDIS_URL`               | Redis (cache, broker, backend)   |
-| `SECRET_KEY`              | Flask secret key                 |
-| `SECURITY_PASSWORD_SALT`  | Flask-Security salt              |
-| `CORS_ORIGINS`            | Allowed frontend origins         |
-| `GCHAT_WEBHOOK_URL`       | Google Chat webhook for reminders|
-| `MAIL_USERNAME`           | SMTP username                    |
-| `MAIL_PASSWORD`           | SMTP app password                |
-| `ADMIN_EMAIL`             | Monthly report recipient         |
+| Variable                  | Purpose                                      |
+|---------------------------|----------------------------------------------|
+| `DATABASE_URL`            | PostgreSQL connection string                 |
+| `REDIS_URL`               | Redis (cache, broker, backend)               |
+| `SECRET_KEY`              | Flask secret key                             |
+| `SECURITY_PASSWORD_SALT`  | Flask-Security salt                          |
+| `CORS_ORIGINS`            | Allowed frontend origins                     |
+| `CRON_SECRET`             | Auth header for HTTP cron endpoints          |
+| `CELERY_ALWAYS_EAGER`     | Set `true` to run tasks in-process (no worker)|
+| `GCHAT_WEBHOOK_URL`       | Google Chat webhook for reminders            |
+| `MAIL_USERNAME`           | SMTP username                                |
+| `MAIL_PASSWORD`           | SMTP app password                            |
+| `ADMIN_EMAIL`             | Monthly report recipient                     |
