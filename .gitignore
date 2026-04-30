@@ -24,3 +24,6 @@ Thumbs.db
 # Generated
 backend/exports/
 celerybeat-schedule
+celerybeat-schedule-shm
+celerybeat-schedule-wal
+backend/ppa.db

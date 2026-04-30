@@ -8,7 +8,13 @@ BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 
 class Config:
     SECRET_KEY = os.environ.get("SECRET_KEY", "super-secret-key-change-in-prod")
-    SQLALCHEMY_DATABASE_URI = "sqlite:///" + os.path.join(BASE_DIR, "ppa.db")
+
+    # Database — use DATABASE_URL (Postgres on Render) if set, else SQLite for local dev
+    _db_url = os.environ.get("DATABASE_URL", "")
+    # Render gives postgres:// but SQLAlchemy needs postgresql://
+    if _db_url.startswith("postgres://"):
+        _db_url = _db_url.replace("postgres://", "postgresql://", 1)
+    SQLALCHEMY_DATABASE_URI = _db_url or ("sqlite:///" + os.path.join(BASE_DIR, "ppa.db"))
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     # Flask-Security
@@ -24,8 +30,14 @@ class Config:
     SECURITY_CSRF_IGNORE_UNAUTH_ENDPOINTS = True
     WTF_CSRF_ENABLED = False
 
-    # CORS
-    CORS_ORIGINS = ["http://localhost:5500", "http://127.0.0.1:5500"]
+    # CORS — allow Render URL + local dev
+    CORS_ORIGINS = [
+        origin.strip()
+        for origin in os.environ.get(
+            "CORS_ORIGINS",
+            "http://localhost:5000,http://127.0.0.1:5000,http://localhost:5500,http://127.0.0.1:5500"
+        ).split(",")
+    ]
 
     # Uploads
     UPLOAD_FOLDER = os.path.join(BASE_DIR, "uploads")
@@ -34,16 +46,26 @@ class Config:
 
     # Redis / Celery
     REDIS_URL = os.environ.get("REDIS_URL", "redis://localhost:6379/0")
+    _celery_broker = os.environ.get("CELERY_BROKER_URL", os.environ.get("REDIS_URL", "redis://localhost:6379/1"))
+    _celery_backend = os.environ.get("CELERY_RESULT_BACKEND", os.environ.get("REDIS_URL", "redis://localhost:6379/2"))
+
     CELERY = {
-        "broker_url": os.environ.get("CELERY_BROKER_URL", "redis://localhost:6379/1"),
-        "result_backend": os.environ.get("CELERY_RESULT_BACKEND", "redis://localhost:6379/2"),
+        "broker_url": _celery_broker,
+        "result_backend": _celery_backend,
         "task_ignore_result": False,
         "timezone": "Asia/Kolkata",
+        "broker_connection_retry_on_startup": True,
     }
+
+    # If using TLS (rediss://), Celery needs explicit SSL config
+    if _celery_broker.startswith("rediss://"):
+        import ssl
+        CELERY["broker_use_ssl"] = {"ssl_cert_reqs": ssl.CERT_NONE}
+        CELERY["redis_backend_use_ssl"] = {"ssl_cert_reqs": ssl.CERT_NONE}
 
     # Flask-Caching (Redis)
     CACHE_TYPE = "RedisCache"
-    CACHE_REDIS_URL = os.environ.get("CACHE_REDIS_URL", "redis://localhost:6379/3")
+    CACHE_REDIS_URL = os.environ.get("CACHE_REDIS_URL", os.environ.get("REDIS_URL", "redis://localhost:6379/3"))
     CACHE_DEFAULT_TIMEOUT = 60  # seconds
 
     # Flask-Mail (SMTP)

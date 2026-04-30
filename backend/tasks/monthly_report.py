@@ -5,7 +5,8 @@ from celery import shared_task
 
 @shared_task(name="tasks.monthly_report.send_monthly_report")
 def send_monthly_report():
-    from app import app, mail
+    from app import app
+    from extensions import mail
 
     with app.app_context():
         from flask import current_app
