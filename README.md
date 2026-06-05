@@ -102,8 +102,8 @@ External Cron ──→ POST /api/cron/* ──→ Reminders (Google Chat)
 ## ⚙️ Background Jobs & Scheduled Tasks
 
 | Job                  | Trigger                          | Description                                                        |
-|----------------------|----------------------------------|--------------------------------------------------------------------||
-| Daily Reminders      | External cron → HTTP endpoint    | Posts upcoming deadline alerts (next 3 days) to Google Chat         |
+|----------------------|----------------------------------|--------------------------------------------------------------------|
+| Daily Reminders      | External cron → HTTP endpoint    | Posts upcoming deadline alerts (next 3 days) to Google Chat        |
 | Monthly Report       | External cron → HTTP endpoint    | Emails an HTML report with drives, applications, selections stats  |
 | CSV Export           | User-triggered (runs in-process) | Generates and serves a CSV of the student's application history    |
 
